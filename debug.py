@@ -51,6 +51,8 @@ todays_date = datetime.date(datetime.now())
 
 df = pd.DataFrame()
 
+#TODO Filter for only today's results
+
 for file in os.listdir(csv_dir):
     if file.endswith(ceq_map[ar][line] + '.csv'):
         file_unix_date = int(os.path.getmtime(os.path.join(csv_dir, file)))
@@ -58,7 +60,7 @@ for file in os.listdir(csv_dir):
 
         #if file_mdate == todays_date:
         shutil.copy(os.path.join(csv_dir, file), downloads_dir)
-        df = df.append(pd.read_csv(os.path.join(csv_dir, file), header=2))
+        df = df.append(pd.read_csv(os.path.join(downloads_dir, file), header=2))
 
 # Filter for only failed results
 filt_failed = df['Passed'] == False
@@ -72,13 +74,17 @@ for key in failed_counts.keys():
         except:
                 pass
 
-copy = dict(sorted(failed_counts.items(), key=lambda item: item[1], reverse=True))
+# Sort counts descending
+failed_counts = dict(sorted(failed_counts.items(), key=lambda item: item[1], reverse=True))
 
 # Plot results
-plt.bar(range(len(copy)), copy.values(), width=0.5)
-plt.xticks(range(len(copy)), copy.keys())
+plt.bar(range(len(failed_counts)), failed_counts.values(), width=0.5)
+plt.xticks(range(len(failed_counts)), failed_counts.keys())
 fig = plt.gcf()
 fig.set_figwidth(15)
 plt.title('Summary of Failures')
 plt.ylabel('Occurences')
+plt.grid(axis='y', linestyle='--')
 plt.show()
+
+print(df_failed.head())
