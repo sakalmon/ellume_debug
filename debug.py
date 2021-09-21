@@ -40,7 +40,9 @@ for file in os.listdir(csv_dir):
         file_mdate = datetime.date(datetime.fromtimestamp(file_unix_date))
 
         if file_mdate == todays_date:
-            df = df.append(pd.read_csv(os.path.join(csv_dir, )))
+            df = df.append(pd.read_csv(os.path.join(csv_dir, file), header=2))
+
+print(df)
 
 #input()
 #     if file.endswith('.csv'):
