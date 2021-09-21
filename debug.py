@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import shutil
-from datetime import datetime
+from datetime import date
 
 pd.set_option('display.max_columns', None)
 csv_dir = r'C:\My Drive\Firmware Release\EPL Production Test Results\Tests'
@@ -47,7 +47,10 @@ ar = 'AR' + input('AR: ')
 line = 'Line' + input('Line: ')
 
 # Today's date will be used to download result files
-todays_date = datetime.date(datetime.now())
+# todays_date = datetime.date(datetime.now())
+todays_date = date.today().strftime('%Y-%m-%d')
+
+print(todays_date)
 
 df = pd.DataFrame()
 
@@ -56,21 +59,35 @@ df = pd.DataFrame()
 for file in os.listdir(csv_dir):
     if file.endswith(ceq_map[ar][line] + '.csv'):
         file_unix_date = int(os.path.getmtime(os.path.join(csv_dir, file)))
-        file_mdate = datetime.date(datetime.fromtimestamp(file_unix_date))
+        file_mdate = date.fromtimestamp(file_unix_date)
 
         #if file_mdate == todays_date:
         shutil.copy(os.path.join(csv_dir, file), downloads_dir)
-        df = df.append(pd.read_csv(os.path.join(downloads_dir, file), header=2))
+        df = df.append(pd.read_csv(os.path.join(downloads_dir, file), header=2, parse_dates=True))
 
 # Filter for only failed results
 filt_failed = df['Passed'] == False
 
 df_failed = df.loc[filt_failed]
 
+# Use dates as index
+df_failed.set_index('Start', inplace=True)
+
+# Convert dates index to datetime
+df_failed.index = pd.to_datetime(df_failed.index)
+
+# Filter for only the current day
+try:
+        df_failed_today = df_failed.loc[todays_date]
+
+except:
+        pass
+
+print(df_failed.loc['2021-09-20':'2021-09-22'])
 # Count number of fails per test
 for key in failed_counts.keys():
         try: 
-                failed_counts[key] = df[key].value_counts()[0]
+                failed_counts[key] = df_failed_today[key].value_counts()[0]
         except:
                 pass
 
@@ -86,5 +103,3 @@ plt.title('Summary of Failures')
 plt.ylabel('Occurences')
 plt.grid(axis='y', linestyle='--')
 plt.show()
-
-print(df_failed.head())
