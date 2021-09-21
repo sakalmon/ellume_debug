@@ -3,8 +3,20 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-
+pd.set_option('display.max_columns', None)
 csv_dir = r'C:\My Drive\Firmware Release\EPL Production Test Results\Tests'
+
+failed_counts = {
+        'Firmware Test': 0,
+        'Serial Test': 0,
+        'Self-Test Test': 0,
+        'Program Test': 0,
+        'Batch Test': 0,
+        'Bluetooth Test': 0,
+        'LED Test': 0,
+        'Button Test': 0,
+        'Metadata Test': 0,
+}
 
 ceq_map = {
     'AR1': {'Line1': 'CEQ0175',
@@ -39,10 +51,29 @@ for file in os.listdir(csv_dir):
         file_unix_date = int(os.path.getmtime(os.path.join(csv_dir, file)))
         file_mdate = datetime.date(datetime.fromtimestamp(file_unix_date))
 
+<<<<<<< HEAD
         if file_mdate == todays_date:
             df = df.append(pd.read_csv(os.path.join(csv_dir, file), header=2))
 
 print(df)
+=======
+        #if file_mdate == todays_date:
+        df = df.append(pd.read_csv(os.path.join(csv_dir, file), header=2))
+
+filt_failed = df['Passed'] == False
+
+df_failed = df.loc[filt_failed]
+
+for key in failed_counts.keys():
+        try: 
+                failed_counts[key] = df[key].value_counts()[0]
+        except:
+                pass
+
+plt.bar(range(len(failed_counts)), failed_counts.values())
+plt.xticks(range(len(failed_counts)), failed_counts.keys(), rotation=90)
+plt.show()
+>>>>>>> 2b33a44baa91c5484937cc3e8610fb09d67dedca
 
 #input()
 #     if file.endswith('.csv'):
