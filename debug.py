@@ -6,6 +6,7 @@ from datetime import datetime
 
 pd.set_option('display.max_columns', None)
 csv_dir = r'C:\My Drive\Firmware Release\EPL Production Test Results\Tests'
+downloads_dir = r'C:\Users\Sakal\Downloads'
 
 failed_counts = {
         'Firmware Test': 0,
@@ -52,9 +53,9 @@ for file in os.listdir(csv_dir):
         file_unix_date = int(os.path.getmtime(os.path.join(csv_dir, file)))
         file_mdate = datetime.date(datetime.fromtimestamp(file_unix_date))
 
-        if file_mdate == todays_date:
-                shutil.copyfile(os.path.join(csv_dir, file), os.getcwd())
-                df = df.append(pd.read_csv(os.path.join(csv_dir, file), header=2))
+        #if file_mdate == todays_date:
+        shutil.copy(os.path.join(csv_dir, file), downloads_dir)
+        df = df.append(pd.read_csv(os.path.join(csv_dir, file), header=2))
 
 filt_failed = df['Passed'] == False
 
@@ -73,7 +74,3 @@ fig.set_figwidth(15)
 plt.title('Summary of Failures')
 plt.ylabel('Occurences')
 plt.show()
-
-#input()
-#     if file.endswith('.csv'):
-#         df = df.append(pd.read_csv(file, header=2), ignore_index=True)
