@@ -8,6 +8,7 @@ pd.set_option('display.max_columns', None)
 csv_dir = r'C:\My Drive\Firmware Release\EPL Production Test Results\Tests'
 downloads_dir = r'C:\Users\Sakal\Downloads'
 
+# For storing number of fails for each test
 failed_counts = {
         'Firmware Test': 0,
         'Serial Test': 0,
@@ -20,6 +21,7 @@ failed_counts = {
         'Metadata Test': 0,
 }
 
+# For locating CEQ number
 ceq_map = {
     'AR1': {'Line1': 'CEQ0175',
             'Line2': 'CEQ0176',
@@ -44,6 +46,7 @@ ceq_map = {
 ar = 'AR' + input('AR: ')
 line = 'Line' + input('Line: ')
 
+# Today's date will be used to download result files
 todays_date = datetime.date(datetime.now())
 
 df = pd.DataFrame()
@@ -57,18 +60,23 @@ for file in os.listdir(csv_dir):
         shutil.copy(os.path.join(csv_dir, file), downloads_dir)
         df = df.append(pd.read_csv(os.path.join(csv_dir, file), header=2))
 
+# Filter for only failed results
 filt_failed = df['Passed'] == False
 
 df_failed = df.loc[filt_failed]
 
+# Count number of fails per test
 for key in failed_counts.keys():
         try: 
                 failed_counts[key] = df[key].value_counts()[0]
         except:
                 pass
 
-plt.bar(range(len(failed_counts)), failed_counts.values(), width=0.5)
-plt.xticks(range(len(failed_counts)), failed_counts.keys())
+copy = dict(sorted(failed_counts.items(), key=lambda item: item[1], reverse=True))
+
+# Plot results
+plt.bar(range(len(copy)), copy.values(), width=0.5)
+plt.xticks(range(len(copy)), copy.keys())
 fig = plt.gcf()
 fig.set_figwidth(15)
 plt.title('Summary of Failures')
