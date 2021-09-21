@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+import shutil
 from datetime import datetime
 
 pd.set_option('display.max_columns', None)
@@ -51,14 +52,9 @@ for file in os.listdir(csv_dir):
         file_unix_date = int(os.path.getmtime(os.path.join(csv_dir, file)))
         file_mdate = datetime.date(datetime.fromtimestamp(file_unix_date))
 
-<<<<<<< HEAD
         if file_mdate == todays_date:
-            df = df.append(pd.read_csv(os.path.join(csv_dir, file), header=2))
-
-print(df)
-=======
-        #if file_mdate == todays_date:
-        df = df.append(pd.read_csv(os.path.join(csv_dir, file), header=2))
+                shutil.copyfile(os.path.join(csv_dir, file), os.getcwd())
+                df = df.append(pd.read_csv(os.path.join(csv_dir, file), header=2))
 
 filt_failed = df['Passed'] == False
 
@@ -70,10 +66,13 @@ for key in failed_counts.keys():
         except:
                 pass
 
-plt.bar(range(len(failed_counts)), failed_counts.values())
-plt.xticks(range(len(failed_counts)), failed_counts.keys(), rotation=90)
+plt.bar(range(len(failed_counts)), failed_counts.values(), width=0.5)
+plt.xticks(range(len(failed_counts)), failed_counts.keys())
+fig = plt.gcf()
+fig.set_figwidth(15)
+plt.title('Summary of Failures')
+plt.ylabel('Occurences')
 plt.show()
->>>>>>> 2b33a44baa91c5484937cc3e8610fb09d67dedca
 
 #input()
 #     if file.endswith('.csv'):
