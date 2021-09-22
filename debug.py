@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import shutil
+import pickle
 from datetime import date
 
 pd.set_option('display.max_columns', None)
@@ -46,15 +47,14 @@ ceq_map = {
 ar = 'AR' + input('AR: ')
 line = 'Line' + input('Line: ')
 
+
 # Today's date will be used to download result files
-# todays_date = datetime.date(datetime.now())
-todays_date = date.today().strftime('%Y-%m-%d')
+todays_date = str(date.today())
+#todays_date = date.today().strftime('%Y-%m-%d')
 
 print(todays_date)
 
 df = pd.DataFrame()
-
-#TODO Filter for only today's results
 
 for file in os.listdir(csv_dir):
     if file.endswith(ceq_map[ar][line] + '.csv'):
@@ -63,7 +63,9 @@ for file in os.listdir(csv_dir):
 
         #if file_mdate == todays_date:
         shutil.copy(os.path.join(csv_dir, file), downloads_dir)
-        df = df.append(pd.read_csv(os.path.join(downloads_dir, file), header=2, parse_dates=True))
+        df = df.append(pd.read_csv(os.path.join(downloads_dir, file), header=3, parse_dates=True), ignore_index=True)
+
+pickle.dump(df, open('df.pickled', 'wb'))
 
 # Filter for only failed results
 filt_failed = df['Passed'] == False
@@ -83,7 +85,6 @@ try:
 except:
         pass
 
-print(df_failed.loc['2021-09-20':'2021-09-22'])
 # Count number of fails per test
 for key in failed_counts.keys():
         try: 
