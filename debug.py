@@ -102,9 +102,15 @@ todays_date = date.today()
 #ar, line = get_input()
 
 # Initialise subplots for 12 lines
-fig, ax = plt.subplots(12)
+fig, ax = plt.subplots(1)
 
 #ar, line = get_input()
+
+# For counting number of plots
+i = 1
+
+# Initialise dictionary for storing fails
+failed_counts = reset_counts()
 
 for file in os.listdir(CSV_DIR):
     for ar, lines in CEQ_MAP.items():
@@ -113,45 +119,24 @@ for file in os.listdir(CSV_DIR):
                 file_mdate = get_mdate(file)
 
                 #if file_mdate == todays_date:
-                downloaded_path = copy_to_downloads()
+                downloaded_path = copy_to_downloads(file)
 
                 try:
-                    df = pd.read_csv(downloaded_path, header=2, parse_dates=True), ignore_index=True
+                    df = pd.read_csv(downloaded_path, header=2, parse_dates=True)
                     df_failed_today = get_failed(df)
-                    count_fails(df_failed_today, fails_count)
+                    fails_count = count_fails(df_failed_today, failed_counts)
+                    # Sort counts descending
+                    fails_count = dict(sorted(fails_count.items(), key=lambda item: item[1], reverse=True))
                 except:
                     pass
 
-i = 1
-for room, lines in CEQ_MAP.items():
-    for line in lines:
-        print(room, '->', line)
+            
+            ax.bar(range(len(fails_count)), fails_count.values(), width=0.5)           
 
-        # Count number of fails per test
-        failed_counts = count_fails(df, reset_counts())
+            failed_counts = reset_counts()
+            i += 1
 
-        # Sort counts descending
-        failed_counts = dict(sorted(failed_counts.items(), key=lambda item: item[1], reverse=True))
-
-    ax[i].bar(range(len(failed_counts)), failed_counts.values(), width=0.5)
-
-    failed_counts = reset_counts()
-
-    i += 1
-
-yesterdays_date = todays_date - timedelta(days=1)
-print(yesterdays_date)
-
-# Count number of fails per test
-for key in failed_counts.keys():
-    try: 
-        failed_counts[key] = df_failed_all[key].value_counts()[0]
-    except:
-        pass
-
-# Sort counts descending
-failed_counts = dict(sorted(failed_counts.items(), key=lambda item: item[1], reverse=True))
-
+ax.set_ticks(range(len(fails_count)), fails_count.keys())
 fig.set_figwidth(15)
 plt.title('Summary of Failures')
 plt.show()
