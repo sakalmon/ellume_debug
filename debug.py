@@ -104,7 +104,7 @@ pd.set_option('display.max_columns', 3)
 #ar, line = get_input()
 
 # Initialise subplots for 12 lines
-fig, ax = plt.subplots(3, 6, sharey=True)
+fig, ax = plt.subplots(3, 6, sharex=True)
 
 #ar, line = get_input()
 
@@ -145,7 +145,7 @@ for file in os.listdir(CSV_DIR):
                     count_fails(df_failed_today)
                 
                     # Sort counts descending
-                    fails_count = dict(sorted(fails_count.items(), key=lambda item: item[1], reverse=True))
+                    fails_count = dict(sorted(fails_count.items(), key=lambda item: item[1]))
                     
 
                     if j == 5:
@@ -154,7 +154,8 @@ for file in os.listdir(CSV_DIR):
                     else:
                         j += 1
 
-                    ax[i,j].bar(range(len(fails_count)), fails_count.values(), width=0.5)
+                    # ax[i,j].bar(range(len(fails_count)), fails_count.values(), width=0.5)
+                    ax[i,j].barh([key for key in fails_count.keys()], fails_count.values())
                     ax[i,j].set_xticks(np.arange(len(fails_count.keys())))
                     ax[i,j].set_xticklabels([key.split(' ')[0] for key in fails_count.keys()], rotation=70)
                     ax[i,j].title.set_text(f'{ar} - {line}')
