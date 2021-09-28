@@ -36,6 +36,8 @@ CEQ_MAP = {
     }
 }
 
+X_TICKS = np.arange(0, 2100, 1000)
+print(X_TICKS)
 # Sets the index to time started, converts the time started to datetime object,
 # filters and returns a dataframe with only failed results for today.
 def get_failed(df):
@@ -89,7 +91,7 @@ def copy_to_downloads(file):
 # Counts the number of different fails
 def count_fails(df):
     for key in fails_count.keys():
-        print(fails_count.keys())
+        
         try:
             fails_count[key] = df[key].value_counts()[0]   
         except Exception as e:
@@ -104,7 +106,7 @@ pd.set_option('display.max_columns', 3)
 #ar, line = get_input()
 
 # Initialise subplots for 12 lines
-fig, ax = plt.subplots(3, 6, sharex=True)
+fig, ax = plt.subplots(3, 6)
 
 #ar, line = get_input()
 
@@ -156,9 +158,11 @@ for file in os.listdir(CSV_DIR):
 
                     # ax[i,j].bar(range(len(fails_count)), fails_count.values(), width=0.5)
                     ax[i,j].barh([key for key in fails_count.keys()], fails_count.values())
-                    ax[i,j].set_xticks(np.arange(len(fails_count.keys())))
-                    ax[i,j].set_xticklabels([key.split(' ')[0] for key in fails_count.keys()], rotation=70)
+                    #ax[i,j].set_xticks(np.arange(len(fails_count.keys())))
+                    #ax[i,j].set_xticklabels([key.split(' ')[0] for key in fails_count.keys()], rotation=70)
+                    ax[i,j].set_xticks(X_TICKS)
                     ax[i,j].title.set_text(f'{ar} - {line}')
+                    ax[i,j].grid(axis='x')
                     reset_counts()
 
 #ax.set_xticks(range(len(fails_count)), fails_count.keys())
@@ -166,6 +170,8 @@ for file in os.listdir(CSV_DIR):
 #ax.set_xticklabels(fails_count.keys())
 fig.set_figwidth(15)
 fig.set_figheight(20)
+fig.tight_layout(pad=3.0)
+plt.grid()
 plt.show()
 
 # Plot results
