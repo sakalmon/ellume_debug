@@ -1,8 +1,8 @@
 import os
+import shutil
 import pandas as pd
 import matplotlib.pyplot as plt
-import shutil
-import pickle
+import numpy as np
 from datetime import date, timedelta
 
 
@@ -44,6 +44,9 @@ def get_failed(df):
     df_failed.set_index('Start', inplace=True)
     df_failed.index = pd.to_datetime(df_failed.index)
 
+    for key in fails_count.keys():
+        df_failed[key] = df_failed[key].astype('bool')
+
     try:
         df_failed_today = df_failed.loc[str(todays_date)]
         return df_failed_today
@@ -63,7 +66,6 @@ def reset_counts():
         'Button Test': 0,
         'Metadata Test': 0,
     }
-    return failed_counts
 
 # Get room and line number
 def get_input():
@@ -85,60 +87,84 @@ def copy_to_downloads(file):
     return os.path.join(DOWNLOADS_DIR, file)
 
 # Counts the number of different fails
-def count_fails(df, counts_dict):
-    for key in counts_dict.keys():
-        try: 
-            counts_dict[key] = df[key].value_counts()[0]
-            return counts_dict
-        except:
-            return reset_counts()
-
-# Display all columns
-pd.set_option('display.max_columns', None)
+def count_fails(df):
+    for key in fails_count.keys():
+        print(fails_count.keys())
+        try:
+            fails_count[key] = df[key].value_counts()[0]   
+        except Exception as e:
+            print(f'Error: {e}')
 
 # Today's date will be used to download result files
 todays_date = date.today()
 
+# Display all columns
+pd.set_option('display.max_columns', 3)
+
 #ar, line = get_input()
 
 # Initialise subplots for 12 lines
-fig, ax = plt.subplots(1)
+fig, ax = plt.subplots(3, 6, sharey=True)
 
 #ar, line = get_input()
 
 # For counting number of plots
-i = 1
+i = 0
+j = -1
+
+fails_count = {
+    'Firmware Test': 0,                
+    'Serial Test': 0,
+    'Self-Test Test': 0,
+    'Program Test': 0,
+    'Batch Test': 0,
+    'Bluetooth Test': 0,
+    'LED Test': 0,
+    'Button Test': 0,
+    'Metadata Test': 0,
+}
 
 # Initialise dictionary for storing fails
-failed_counts = reset_counts()
-
+reset_counts()
+print(f'keys: {[key for key in fails_count.keys()]}')
 for file in os.listdir(CSV_DIR):
+    print(f'Processing {file}')
     for ar, lines in CEQ_MAP.items():
         for line, ceq in lines.items():
             if file.endswith(ceq + '.csv'):
                 file_mdate = get_mdate(file)
+                print(f"File's Modified Date: {file_mdate}")
+                if file_mdate == todays_date:
+                    downloaded_path = copy_to_downloads(file)
+                    print(f'File downloaded to {downloaded_path}')
 
-                #if file_mdate == todays_date:
-                downloaded_path = copy_to_downloads(file)
-
-                try:
+                
                     df = pd.read_csv(downloaded_path, header=2, parse_dates=True)
                     df_failed_today = get_failed(df)
-                    fails_count = count_fails(df_failed_today, failed_counts)
+                    
+                    count_fails(df_failed_today)
+                
                     # Sort counts descending
                     fails_count = dict(sorted(fails_count.items(), key=lambda item: item[1], reverse=True))
-                except:
-                    pass
+                    
 
-            
-            ax.bar(range(len(fails_count)), fails_count.values(), width=0.5)           
+                    if j == 5:
+                        i += 1
+                        j = 0
+                    else:
+                        j += 1
 
-            failed_counts = reset_counts()
-            i += 1
+                    ax[i,j].bar(range(len(fails_count)), fails_count.values(), width=0.5)
+                    ax[i,j].set_xticks(np.arange(len(fails_count.keys())))
+                    ax[i,j].set_xticklabels([key.split(' ')[0] for key in fails_count.keys()], rotation=70)
+                    ax[i,j].title.set_text(f'{ar} - {line}')
+                    reset_counts()
 
-ax.set_ticks(range(len(fails_count)), fails_count.keys())
+#ax.set_xticks(range(len(fails_count)), fails_count.keys())
+
+#ax.set_xticklabels(fails_count.keys())
 fig.set_figwidth(15)
-plt.title('Summary of Failures')
+fig.set_figheight(20)
 plt.show()
 
 # Plot results
