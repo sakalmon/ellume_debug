@@ -36,28 +36,32 @@ CEQ_MAP = {
     }
 }
 
-X_TICKS = np.arange(0, 2100, 1000)
+#X_TICKS = np.arange(0, 2100, 1000)
+X_TICKS = np.arange(0, 1100, 500)
 print(X_TICKS)
 # Sets the index to time started, converts the time started to datetime object,
 # filters and returns a dataframe with only failed results for today.
 def get_failed(df):
-    filt_failed = df['Passed'] == False
-    df_failed = df.loc[filt_failed]
-    df_failed.set_index('Start', inplace=True)
-    df_failed.index = pd.to_datetime(df_failed.index)
-
-    for key in fails_count.keys():
-        df_failed[key] = df_failed[key].astype('bool')
-
     try:
+        filt_failed = df['Passed'] == False
+        df_failed = df.loc[filt_failed]
+
+        df_failed.set_index('Start', inplace=True)
+        df_failed.index = pd.to_datetime(df_failed.index)
+
+        for key in fails_count.keys():
+            df_failed[key] = df_failed[key].astype('bool')
+
         df_failed_today = df_failed.loc[str(todays_date)]
         return df_failed_today
-    except:
-        pass
+
+    except Exception:
+        print(f"Error: Can't read dataframe.")
 
 # Reset and return a dictionary for counting the number of different fails
 def reset_counts():
-    failed_counts = {
+    global fails_count
+    fails_count = {
         'Firmware Test': 0,                
         'Serial Test': 0,
         'Self-Test Test': 0,
@@ -90,12 +94,11 @@ def copy_to_downloads(file):
 
 # Counts the number of different fails
 def count_fails(df):
-    for key in fails_count.keys():
-        
-        try:
-            fails_count[key] = df[key].value_counts()[0]   
-        except Exception as e:
-            print(f'Error: {e}')
+    try:
+        for key in fails_count.keys():
+            fails_count[key] = df[key].value_counts()[0]
+    except Exception:
+        print(f'Error: Unable to count fails.')
 
 # Today's date will be used to download result files
 todays_date = date.today()
@@ -171,6 +174,7 @@ for file in os.listdir(CSV_DIR):
 fig.set_figwidth(15)
 fig.set_figheight(20)
 fig.tight_layout(pad=3.0)
+fig.suptitle('Fails Summary', x=0.53, y=1, fontsize=16)
 plt.grid()
 plt.show()
 
