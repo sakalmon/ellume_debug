@@ -1,5 +1,6 @@
 import os
 import shutil
+import copy
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -119,9 +120,24 @@ todays_date = date.today()
 # Initialise enough subplots for 15 lines
 fig, ax = plt.subplots(3, 6)
 
-ar2l1 = Results('AR2', 'Line1')
-ar2l1_fails = ar2l1.get_failed()
-print(ar2l1_fails)
+fails_summary = copy.deepcopy(CEQ_MAP)
+
+for ar, lines in fails_summary.items():
+    for line in lines:
+        fails_summary[ar][line] = ''
+
+#TODO
+for ar, lines in fails_summary.items():
+    for line in lines:
+        fails_summary[ar][line] = 
+
+print(f'CEQ_MAP: {CEQ_MAP}')
+print(f'fails_summary: {fails_summary}')
+
+# ar2l1 = Results('AR2', 'Line1')
+# ar2l1_fails = ar2l1.get_failed()
+
+# print(ar2l1_fails)
 
 # ax[i,j].barh([key for key in fails_count.keys()], fails_count.values())
 
