@@ -59,7 +59,7 @@ class Results:
     def get_failed(self):
         for file in os.listdir(CSV_DIR):
             print(f'Processing {file}')
-            if file.endswith(CEQ_MAP[ar][line] + '.csv'):
+            if file.endswith(CEQ_MAP[self.ar][self.line] + '.csv'):
                 if get_mdate(file) == todays_date:
                     downloaded_path = copy_to_downloads(file)
                     print(f'File downloaded to {downloaded_path}')
@@ -68,12 +68,12 @@ class Results:
                         ignore_index=True)
                     self.df = self.filter_failed()
                         
-                    self.fails_count = count_fails()
+                    self.count_fails()
                     
                     # Sort counts descending
                     self.fails_count = dict(sorted(self.fails_count.items(), key=lambda item: item[1]))
                     
-                    return self.fails_count
+        return self.fails_count
 
     def filter_failed(self):
         try:
@@ -89,18 +89,16 @@ class Results:
             df_failed_today = df_failed.loc[str(todays_date)]
             return df_failed_today
 
-    except Exception:
-        print(f"Error: Can't read dataframe.")
+        except Exception:
+            print(f"Error: Can't read dataframe.")
 
     # Counts the number of different fails
     def count_fails(self):
-        try:
-            for key in self.fails_count.keys():
-                self.fails_count[key] = self.df[key].value_counts()[0]
-                return self.fails_count
-        except Exception:
-            print(f'Error: Unable to count fails.')
-
+        for key in self.fails_count.keys():
+            if self.df[key].value_counts().shape[0] > 1:
+                self.fails_count[key] += self.df[key].value_counts()[0]
+            else:
+                self.fails_count[key] += 0
 # Returns a file's modified date
 def get_mdate(file):
     file_unix_date = int(os.path.getmtime(os.path.join(CSV_DIR, file)))
@@ -121,9 +119,9 @@ todays_date = date.today()
 # Initialise enough subplots for 15 lines
 fig, ax = plt.subplots(3, 6)
 
-ar1l1 = Results('AR1', 'Line1')
-ar1l1_fails = ar1l1.get_failed()
-print(ar1l1_fails)
+ar2l1 = Results('AR2', 'Line1')
+ar2l1_fails = ar2l1.get_failed()
+print(ar2l1_fails)
 
 # ax[i,j].barh([key for key in fails_count.keys()], fails_count.values())
 
