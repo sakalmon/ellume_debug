@@ -36,6 +36,30 @@ CEQ_MAP = {
     }
 }
 
+class Results:
+    def __init__(self, ar, line):
+        self.ar = ar
+        self.line = line
+        
+        self.df = 
+
+    def get_failed(self):
+        try:
+            filt_failed = df['Passed'] == False
+            df_failed = df.loc[filt_failed]
+
+            df_failed.set_index('Start', inplace=True)
+            df_failed.index = pd.to_datetime(df_failed.index)
+
+            for key in fails_count.keys():
+                df_failed[key] = df_failed[key].astype('bool')
+
+            df_failed_today = df_failed.loc[str(todays_date)]
+            return df_failed_today
+
+        except Exception:
+        print(f"Error: Can't read dataframe.")
+
 #X_TICKS = np.arange(0, 2100, 1000)
 X_TICKS = np.arange(0, 1100, 500)
 print(X_TICKS)
