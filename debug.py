@@ -1,6 +1,7 @@
 import os
 import shutil
 import copy
+from typing import ItemsView
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -65,32 +66,34 @@ class Results:
                     downloaded_path = copy_to_downloads(file)
                     print(f'File downloaded to {downloaded_path}')
 
-                    self.df = self.df.append(pd.read_csv(downloaded_path, header=2, parse_dates=True), \
-                        ignore_index=True)
+                    self.df = self.df.append(pd.read_csv(downloaded_path, header=2, parse_dates=True))
                     self.df = self.filter_failed()
                         
                     self.count_fails()
                     
                     # Sort counts descending
                     self.fails_count = dict(sorted(self.fails_count.items(), key=lambda item: item[1]))
-                    
-        return self.fails_count
 
     def filter_failed(self):
-        try:
+        if self.df.shape[0] >= 1:
             filt_failed = self.df['Passed'] == False
             df_failed = self.df.loc[filt_failed]
 
-            df_failed.set_index('Start', inplace=True)
-            df_failed.index = pd.to_datetime(df_failed.index)
+            try:
+                df_failed.set_index('Start', inplace=True)
+                df_failed.index = pd.to_datetime(df_failed.index)
+
+            except:
+                print("Empty dataframe.")
 
             for key in self.fails_count.keys():
                 df_failed[key] = df_failed[key].astype('bool')
-
+            #TODO - KeyError
             df_failed_today = df_failed.loc[str(todays_date)]
+            print(df_failed_today)
             return df_failed_today
 
-        except Exception:
+        else:
             print(f"Error: Can't read dataframe.")
 
     # Counts the number of different fails
@@ -100,6 +103,12 @@ class Results:
                 self.fails_count[key] += self.df[key].value_counts()[0]
             else:
                 self.fails_count[key] += 0
+
+    #TODO
+    def store_counts(self):
+        fails_summary[self.ar][self.line] = self.fails_count
+
+
 # Returns a file's modified date
 def get_mdate(file):
     file_unix_date = int(os.path.getmtime(os.path.join(CSV_DIR, file)))
@@ -126,16 +135,12 @@ for ar, lines in fails_summary.items():
     for line in lines:
         fails_summary[ar][line] = ''
 
-#TODO
 for ar, lines in fails_summary.items():
-    for line in lines:
-        fails_summary[ar][line] = 
-
-print(f'CEQ_MAP: {CEQ_MAP}')
-print(f'fails_summary: {fails_summary}')
-
-# ar2l1 = Results('AR2', 'Line1')
-# ar2l1_fails = ar2l1.get_failed()
+    for line in lines:        
+        ar_line = Results(ar, line)
+        ar_line.get_failed()
+        ar_line.store_counts()
+print(fails_summary)
 
 # print(ar2l1_fails)
 
