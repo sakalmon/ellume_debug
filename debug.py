@@ -65,8 +65,15 @@ class Results:
                 if get_mdate(file) == todays_date:
                     downloaded_path = copy_to_downloads(file)
                     print(f'File downloaded to {downloaded_path}')
+                    
+                    if self.df.index.empty == True:
+                        self.df = pd.read_csv(downloaded_path, header=2, parse_dates=True, index_col='Start')
+                        if self.df.empty == True:
+                            return
+                    
+                    else:
+                        self.df = self.df.append(pd.read_csv(downloaded_path, header=2, parse_dates=True))
 
-                    self.df = self.df.append(pd.read_csv(downloaded_path, header=2, parse_dates=True))
                     self.df = self.filter_failed()
                         
                     self.count_fails()
@@ -75,23 +82,19 @@ class Results:
                     self.fails_count = dict(sorted(self.fails_count.items(), key=lambda item: item[1]))
 
     def filter_failed(self):
-        if self.df.shape[0] >= 1:
+        if self.df.empty == False:
             filt_failed = self.df['Passed'] == False
             df_failed = self.df.loc[filt_failed]
 
-            try:
-                df_failed.set_index('Start', inplace=True)
-                df_failed.index = pd.to_datetime(df_failed.index)
-
-            except:
-                print("Empty dataframe.")
-
             for key in self.fails_count.keys():
                 df_failed[key] = df_failed[key].astype('bool')
-            #TODO - KeyError
-            df_failed_today = df_failed.loc[str(todays_date)]
-            print(df_failed_today)
-            return df_failed_today
+            
+            try:
+                df_failed_today = df_failed.loc[str(todays_date)]
+                return df_failed_today
+            
+            except:
+                print('No fails found in this dataframe.')
 
         else:
             print(f"Error: Can't read dataframe.")
@@ -104,7 +107,6 @@ class Results:
             else:
                 self.fails_count[key] += 0
 
-    #TODO
     def store_counts(self):
         fails_summary[self.ar][self.line] = self.fails_count
 
@@ -121,7 +123,7 @@ def copy_to_downloads(file):
     return os.path.join(DOWNLOADS_DIR, file)
 
 # Display all columns
-pd.set_option('display.max_columns', 3)
+pd.set_option('display.max_columns', 10)
 
 # Today's date will be used to download result files
 todays_date = date.today()
@@ -140,7 +142,6 @@ for ar, lines in fails_summary.items():
         ar_line = Results(ar, line)
         ar_line.get_failed()
         ar_line.store_counts()
-print(fails_summary)
 
 # print(ar2l1_fails)
 
