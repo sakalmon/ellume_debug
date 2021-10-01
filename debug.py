@@ -1,7 +1,6 @@
 import os
 import shutil
 import copy
-from typing import ItemsView
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,8 +9,8 @@ from datetime import date, timedelta
 
 #Directories
 CSV_DIR = r'C:\My Drive\Firmware Release\EPL Production Test Results\Tests'
-#DOWNLOADS_DIR = r'C:\Users\Sakal\Downloads'
-DOWNLOADS_DIR = r'C:\Users\sakal.mon\Downloads'
+USER_DIR = os.getenv("USERPROFILE")
+DOWNLOADS_DIR = os.path.join(USER_DIR, 'Downloads')
 
 # X-axis labels
 X_TICKS = np.arange(0, 1100, 500)
@@ -135,7 +134,7 @@ pd.set_option('display.max_columns', 10)
 todays_date = date.today()
 
 # Initialise enough subplots for 15 lines
-fig, ax = plt.subplots(3, 6)
+fig, ax = plt.subplots(3, 6, num='Fails Summary')
 
 fails_summary = copy.deepcopy(CEQ_MAP)
 
@@ -149,22 +148,35 @@ for ar, lines in fails_summary.items():
         failed = ar_line.get_failed(ar_line.df)
         fails_summary = ar_line.store_counts(failed, fails_summary)
 
-print(fails_summary['AR1'])
-print()
-print(fails_summary['AR2'])
-print()
-print(fails_summary['AR3'])
+row_num = 0
+col_num = 0
 
-# ax[i,j].barh([key for key in fails_count.keys()], fails_count.values())
+for ar, lines in fails_summary.items():
+    for line, fails in lines.items():
+        try:
+            ax[row_num,col_num].barh(list(fails.keys()), list(fails.values()))
+            ax[row_num,col_num].title.set_text(f'{ar} - {line}')
+        except:
+            print(f'No data for {ar} {line}')
+            ax[row_num,col_num].axis('off')
+        
+        ax[row_num,col_num].grid(axis='x')
+        
+        if col_num < 5:
+            col_num += 1
+        else:
+            col_num = 0
+            row_num += 1
+
+        # Disable last three plots as there are only 3 lines in AR3
+        for i in range(3, 6):
+            ax[2,i].axis('off')
 
 # ax[i,j].set_xticks(X_TICKS)
-# ax[i,j].title.set_text(f'{ar} - {line}')
-# ax[i,j].grid(axis='x')
-# reset_counts()
 
-# fig.set_figwidth(15)
-# fig.set_figheight(20)
-# fig.tight_layout(pad=3.0)
-# fig.suptitle('Fails Summary', x=0.53, y=1, fontsize=16)
-# plt.grid()
-# plt.show()
+fig.set_figwidth(15)
+fig.set_figheight(20)
+fig.tight_layout(pad=3.0)
+fig.subplots_adjust(hspace=0.5)
+#fig.suptitle('Fails Summary', x=0.53, y=1, fontsize=16)
+plt.show()
