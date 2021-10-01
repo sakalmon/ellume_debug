@@ -1,11 +1,15 @@
 import os
 import shutil
 import copy
+import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import date, timedelta
 
+
+# Disable warnings to hide "SettingWithCopyWarning"
+warnings.filterwarnings("ignore")
 
 #Directories
 CSV_DIR = r'C:\My Drive\Firmware Release\EPL Production Test Results\Tests'
@@ -58,9 +62,8 @@ class Results:
         }
 
     def get_failed(self, df):
-        for file in os.listdir(CSV_DIR):
-            print(f'Processing {file}')
-            if file.endswith(CEQ_MAP[self.ar][self.line] + '.csv'):
+        for file in os.listdir(CSV_DIR):            
+            if file.startswith('6171-ASM') and file.endswith(CEQ_MAP[self.ar][self.line] + '.csv'):
                 if get_mdate(file) == todays_date:
                     downloaded_path = copy_to_downloads(file)
                     print(f'File downloaded to {downloaded_path}')
@@ -81,6 +84,7 @@ class Results:
                     fails_count = dict(sorted(fails_count.items(), key=lambda item: item[1]))
 
                     return fails_count
+
     def filter_failed(self, df):
         if df.empty == False:
             filt_failed = df['Passed'] == False
@@ -133,7 +137,7 @@ pd.set_option('display.max_columns', 10)
 # Today's date will be used to download result files
 todays_date = date.today()
 
-# Initialise enough subplots for 15 lines
+# Initialise 3 rows for AR and 6 columns for lines
 fig, ax = plt.subplots(3, 6, num='Fails Summary')
 
 fails_summary = copy.deepcopy(CEQ_MAP)
@@ -143,7 +147,8 @@ for ar, lines in fails_summary.items():
         fails_summary[ar][line] = ''
 
 for ar, lines in fails_summary.items():
-    for line in lines:        
+    for line in lines:
+        print(f'Getting results for {ar} {line}...')        
         ar_line = Results(ar, line)
         failed = ar_line.get_failed(ar_line.df)
         fails_summary = ar_line.store_counts(failed, fails_summary)
@@ -172,11 +177,8 @@ for ar, lines in fails_summary.items():
         for i in range(3, 6):
             ax[2,i].axis('off')
 
-# ax[i,j].set_xticks(X_TICKS)
-
 fig.set_figwidth(15)
 fig.set_figheight(20)
 fig.tight_layout(pad=3.0)
 fig.subplots_adjust(hspace=0.5)
-#fig.suptitle('Fails Summary', x=0.53, y=1, fontsize=16)
 plt.show()
