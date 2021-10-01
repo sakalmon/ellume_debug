@@ -58,7 +58,7 @@ class Results:
             'Metadata Test': 0,
         }
 
-    def get_failed(self):
+    def get_failed(self, df):
         for file in os.listdir(CSV_DIR):
             print(f'Processing {file}')
             if file.endswith(CEQ_MAP[self.ar][self.line] + '.csv'):
@@ -66,25 +66,26 @@ class Results:
                     downloaded_path = copy_to_downloads(file)
                     print(f'File downloaded to {downloaded_path}')
                     
-                    if self.df.index.empty == True:
-                        self.df = pd.read_csv(downloaded_path, header=2, parse_dates=True, index_col='Start')
-                        if self.df.empty == True:
+                    if df.index.empty == True:
+                        df = pd.read_csv(downloaded_path, header=2, parse_dates=True, index_col='Start')
+                        if df.empty == True:
                             return
                     
                     else:
-                        self.df = self.df.append(pd.read_csv(downloaded_path, header=2, parse_dates=True))
+                        df = df.append(pd.read_csv(downloaded_path, header=2, parse_dates=True))
 
-                    self.df = self.filter_failed()
+                    df = self.filter_failed(df)
                         
-                    self.count_fails()
+                    fails_count = self.count_fails(df, self.fails_count)
                     
                     # Sort counts descending
-                    self.fails_count = dict(sorted(self.fails_count.items(), key=lambda item: item[1]))
+                    fails_count = dict(sorted(fails_count.items(), key=lambda item: item[1]))
 
-    def filter_failed(self):
-        if self.df.empty == False:
-            filt_failed = self.df['Passed'] == False
-            df_failed = self.df.loc[filt_failed]
+                    return fails_count
+    def filter_failed(self, df):
+        if df.empty == False:
+            filt_failed = df['Passed'] == False
+            df_failed = df.loc[filt_failed]
 
             for key in self.fails_count.keys():
                 df_failed[key] = df_failed[key].astype('bool')
@@ -98,17 +99,22 @@ class Results:
 
         else:
             print(f"Error: Can't read dataframe.")
+            
 
     # Counts the number of different fails
-    def count_fails(self):
+    def count_fails(self, df, fails_count):
         for key in self.fails_count.keys():
-            if self.df[key].value_counts().shape[0] > 1:
-                self.fails_count[key] += self.df[key].value_counts()[0]
+            if df[key].value_counts().shape[0] > 1:
+                fails_count[key] += df[key].value_counts()[0]
             else:
-                self.fails_count[key] += 0
+                fails_count[key] += 0
 
-    def store_counts(self):
-        fails_summary[self.ar][self.line] = self.fails_count
+        return fails_count
+
+    def store_counts(self, failed, fails_summary):
+        fails_summary[self.ar][self.line] = failed
+        
+        return fails_summary
 
 
 # Returns a file's modified date
@@ -140,10 +146,14 @@ for ar, lines in fails_summary.items():
 for ar, lines in fails_summary.items():
     for line in lines:        
         ar_line = Results(ar, line)
-        ar_line.get_failed()
-        ar_line.store_counts()
+        failed = ar_line.get_failed(ar_line.df)
+        fails_summary = ar_line.store_counts(failed, fails_summary)
 
-# print(ar2l1_fails)
+print(fails_summary['AR1'])
+print()
+print(fails_summary['AR2'])
+print()
+print(fails_summary['AR3'])
 
 # ax[i,j].barh([key for key in fails_count.keys()], fails_count.values())
 
