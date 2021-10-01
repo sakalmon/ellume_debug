@@ -7,12 +7,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import date, timedelta
 
-
 # Disable warnings to hide "SettingWithCopyWarning"
 warnings.filterwarnings("ignore")
 
 #Directories
-CSV_DIR = r'C:\My Drive\Firmware Release\EPL Production Test Results\Tests'
+CSV_DIR = r'G:\.shortcut-targets-by-id\0B581P_jzivVEeGJCX1dJUFh5djA\Scientific & Technical\Firmware Release\EPL Production Test Results\Tests'
 USER_DIR = os.getenv("USERPROFILE")
 DOWNLOADS_DIR = os.path.join(USER_DIR, 'Downloads')
 
@@ -68,7 +67,7 @@ class Results:
                     downloaded_path = copy_to_downloads(file)
                     print(f'File downloaded to {downloaded_path}')
                     
-                    if df.index.empty == True:
+                    if df.index.empty == True:                        
                         df = pd.read_csv(downloaded_path, header=2, parse_dates=True, index_col='Start')
                         if df.empty == True:
                             return
