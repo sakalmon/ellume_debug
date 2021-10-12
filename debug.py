@@ -11,7 +11,7 @@ from datetime import date, timedelta
 warnings.filterwarnings("ignore")
 
 #Directories
-CSV_DIR = r'G:\Scientific & Technical\Firmware Release\EPL Production Test Results\Tests'
+CSV_DIR = r'G:\My Drive\Scientific & Technical\Firmware Release\EPL Production Test Results\Tests'
 USER_DIR = os.getenv("USERPROFILE")
 DOWNLOADS_DIR = os.path.join(USER_DIR, 'Downloads')
 
