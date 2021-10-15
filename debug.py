@@ -156,7 +156,10 @@ for ar, lines in fails_summary.items():
     for line, fails in lines.items():
         try:
             ax[row_num,col_num].barh(list(fails.keys()), list(fails.values()))
+
+            # Remove 'Test' from yticks
             ax[row_num,col_num].set_yticklabels([key.split(' ')[0] for key in fails.keys()])
+
             ax[row_num,col_num].title.set_text(f'{ar} - {line}')
         except:
             print(f'No data for {ar} {line}')
