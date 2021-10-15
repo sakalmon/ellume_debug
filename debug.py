@@ -15,9 +15,6 @@ CSV_DIR = r'G:\My Drive\Scientific & Technical\Firmware Release\EPL Production T
 USER_DIR = os.getenv("USERPROFILE")
 DOWNLOADS_DIR = os.path.join(USER_DIR, 'Downloads')
 
-# X-axis labels
-X_TICKS = np.arange(0, 1100, 500)
-
 # For locating CEQ number
 CEQ_MAP = {
     'AR1': {
@@ -159,6 +156,7 @@ for ar, lines in fails_summary.items():
     for line, fails in lines.items():
         try:
             ax[row_num,col_num].barh(list(fails.keys()), list(fails.values()))
+            ax[row_num,col_num].set_yticklabels([key.split(' ')[0] for key in fails.keys()])
             ax[row_num,col_num].title.set_text(f'{ar} - {line}')
         except:
             print(f'No data for {ar} {line}')
