@@ -11,7 +11,7 @@ from datetime import date, timedelta
 warnings.filterwarnings("ignore")
 
 #Directories
-CSV_DIR = r'G:\My Drive\Scientific & Technical\Firmware Release\EPL Production Test Results\Tests'
+CSV_DIR = r'C:\My Drive\Scientific & Technical\Firmware Release\EPL Production Test Results\Tests'
 USER_DIR = os.getenv("USERPROFILE")
 DOWNLOADS_DIR = os.path.join(USER_DIR, 'Downloads')
 
@@ -57,8 +57,16 @@ class Results:
             'Metadata Test': 0,
         }
 
+    def get_files(self, ar, line):
+        files = []
+        for file in os.listdir(CSV_DIR):
+            if file.startswith('6171-ASM') and file.endswith(CEQ_MAP[self.ar][self.line] + '.csv'):
+                if get_mdate(file) == todays_date:
+                    files = files.append(file)
+            
     def get_failed(self, df):
-        for file in os.listdir(CSV_DIR):            
+        for file in os.listdir(CSV_DIR):         
+            print(file)   
             if file.startswith('6171-ASM') and file.endswith(CEQ_MAP[self.ar][self.line] + '.csv'):
                 if get_mdate(file) == todays_date:
                     downloaded_path = copy_to_downloads(file)
