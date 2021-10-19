@@ -59,35 +59,37 @@ class Results:
 
     def get_files(self, ar, line):
         files = []
+
         for file in os.listdir(CSV_DIR):
-            if file.startswith('6171-ASM') and file.endswith(CEQ_MAP[self.ar][self.line] + '.csv'):
+            if file.startswith('6171-ASM') and file.endswith(CEQ_MAP[ar][line] + '.csv'):
                 if get_mdate(file) == todays_date:
-                    files = files.append(file)
+                    files.append(file)
+
+        return files
             
-    def get_failed(self, df):
-        for file in os.listdir(CSV_DIR):         
-            print(file)   
-            if file.startswith('6171-ASM') and file.endswith(CEQ_MAP[self.ar][self.line] + '.csv'):
-                if get_mdate(file) == todays_date:
-                    downloaded_path = copy_to_downloads(file)
-                    print(f'File downloaded to {downloaded_path}')
-                    
-                    if df.index.empty == True:                        
-                        df = pd.read_csv(downloaded_path, header=2, parse_dates=True, index_col='Start')
-                        if df.empty == True:
-                            return
-                    
-                    else:
-                        df = df.append(pd.read_csv(downloaded_path, header=2, parse_dates=True))
+    def get_failed(self, df, list_of_files):
+        if len(list_of_files) > 1:
+            for file in list_of_files:
+                df = df.append(pd.read_csv(file, header=2, parse_dates=True, index_col='Start'))
+                
+                if df.empty == True:
+                    return
 
-                    df = self.filter_failed(df)
-                        
-                    fails_count = self.count_fails(df, self.fails_count)
-                    
-                    # Sort counts descending
-                    fails_count = dict(sorted(fails_count.items(), key=lambda item: item[1]))
+        else:
+            if list_of_files:
+                df = pd.read_csv(list_of_files[0], header=2, parse_dates=True, index_col='Start')
 
-                    return fails_count
+        df = self.filter_failed(df)
+        
+        if df is None:
+            return
+        fails_count = self.count_fails(df, self.fails_count)
+        
+        # Sort counts descending
+        fails_count = dict(sorted(fails_count.items(), key=lambda item: item[1]))
+
+        return fails_count
+            
 
     def filter_failed(self, df):
         if df.empty == False:
@@ -133,7 +135,11 @@ def get_mdate(file):
 def copy_to_downloads(file):
     file_path = os.path.join(CSV_DIR, file)
     shutil.copy(file_path, DOWNLOADS_DIR)
-    return os.path.join(DOWNLOADS_DIR, file)
+    downloaded_path = os.path.join(DOWNLOADS_DIR, file)
+
+    print(f'File downloaded to {downloaded_path}')
+    
+    return downloaded_path
 
 # Display all columns
 pd.set_option('display.max_columns', 10)
@@ -152,9 +158,13 @@ for ar, lines in fails_summary.items():
 
 for ar, lines in fails_summary.items():
     for line in lines:
+        file_paths = []
         print(f'Getting results for {ar} {line}...')        
         ar_line = Results(ar, line)
-        failed = ar_line.get_failed(ar_line.df)
+        files = ar_line.get_files(ar, line)
+        for file in files:
+            file_paths.append(copy_to_downloads(file))
+        failed = ar_line.get_failed(ar_line.df, file_paths)
         fails_summary = ar_line.store_counts(failed, fails_summary)
 
 row_num = 0
