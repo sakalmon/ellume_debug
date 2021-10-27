@@ -176,7 +176,6 @@ for ar, lines in fails_summary.items():
         try:
             if max(fails.values()) > highest_count:
                 highest_count = max(fails.values())
-                print(highest_count)
             ax[row_num,col_num].barh(list(fails.keys()), list(fails.values()))
 
             # Remove 'Test' from yticks
