@@ -5,7 +5,7 @@ import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from datetime import date, timedelta
+from datetime import date
 
 # Disable warnings to hide "SettingWithCopyWarning"
 warnings.filterwarnings("ignore")
@@ -148,7 +148,7 @@ pd.set_option('display.max_columns', 10)
 todays_date = date.today()
 
 # Initialise 3 rows for AR and 6 columns for lines
-fig, ax = plt.subplots(3, 6, num='Fails Summary')
+fig, ax = plt.subplots(3, 6, num='Production Fails')
 
 fails_summary = copy.deepcopy(CEQ_MAP)
 
@@ -169,21 +169,41 @@ for ar, lines in fails_summary.items():
 
 row_num = 0
 col_num = 0
+highest_count = 0
 
 for ar, lines in fails_summary.items():
     for line, fails in lines.items():
         try:
+            if max(fails.values()) > highest_count:
+                highest_count = max(fails.values())
+                print(highest_count)
             ax[row_num,col_num].barh(list(fails.keys()), list(fails.values()))
 
             # Remove 'Test' from yticks
             ax[row_num,col_num].set_yticklabels([key.split(' ')[0] for key in fails.keys()])
 
             ax[row_num,col_num].title.set_text(f'{ar} - {line}')
+
+            rects = ax[row_num,col_num].patches
+            labels = [count for count in list(fails.values())]
+
+            for rect, label in zip(rects, labels):
+                width = rect.get_width()
+                height = rect.get_height()
+                x = rect.get_x()
+                y = rect.get_y()
+                
+                ax[row_num,col_num].text(
+                    x + width / 2 if width > 40 else x + width, \
+                    y + height / 3, label, ha='center' if width > 40 else 'left'
+                )
+
+                ax[row_num,col_num].set_xticks(np.arange(0, highest_count, 100))
         except:
             print(f'No data for {ar} {line}')
             ax[row_num,col_num].axis('off')
         
-        ax[row_num,col_num].grid(axis='x')
+        #ax[row_num,col_num].grid(axis='x')
         
         if col_num < 5:
             col_num += 1
@@ -194,9 +214,9 @@ for ar, lines in fails_summary.items():
         # Disable last three plots as there are only 3 lines in AR3
         for i in range(3, 6):
             ax[2,i].axis('off')
-
 fig.set_figwidth(15)
 fig.set_figheight(20)
+# Adds horizontal spacing between subplots
 fig.tight_layout(pad=3.0)
 fig.subplots_adjust(hspace=0.5)
 plt.show()
